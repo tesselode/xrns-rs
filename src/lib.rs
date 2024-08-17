@@ -35,7 +35,7 @@ pub struct GlobalSongData {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PatternPool {
-    #[serde(deserialize_with = "unwrap_patterns")]
+    #[serde(deserialize_with = "unwrap_pattern_list")]
     pub patterns: Vec<Pattern>,
 }
 
@@ -56,7 +56,7 @@ pub struct Tracks {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PatternTrack {
-    #[serde(deserialize_with = "unwrap_lines")]
+    #[serde(deserialize_with = "unwrap_line_list")]
     pub lines: Vec<Line>,
 }
 
@@ -65,7 +65,7 @@ pub struct PatternTrack {
 pub struct Line {
     #[serde(rename = "@index")]
     pub index: u32,
-    #[serde(deserialize_with = "unwrap_note_columns")]
+    #[serde(deserialize_with = "unwrap_note_column_list")]
     pub note_columns: Vec<NoteColumn>,
 }
 
@@ -84,7 +84,7 @@ pub struct NoteColumn {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PatternSequence {
-    #[serde(deserialize_with = "unwrap_sequence_entries")]
+    #[serde(deserialize_with = "unwrap_sequence_entry_list")]
     pub sequence_entries: Vec<SequenceEntry>,
 }
 
@@ -101,54 +101,25 @@ pub enum Error {
     DeError(quick_xml::DeError),
 }
 
-fn unwrap_patterns<'de, D>(deserializer: D) -> Result<Vec<Pattern>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    struct Patterns {
-        #[serde(default)]
-        pattern: Vec<Pattern>,
-    }
-    Ok(Patterns::deserialize(deserializer)?.pattern)
+macro_rules! unwrap_list_fns {
+    ($($element_name:ident),*$(,)?) => {
+		$(
+			paste::paste! {
+				fn [<unwrap_ $element_name:snake _list>]<'de, D>(deserializer: D) -> Result<Vec<$element_name>, D::Error>
+				where
+					D: Deserializer<'de>,
+				{
+					#[derive(Deserialize)]
+					#[serde(rename_all = "PascalCase")]
+					struct List {
+						#[serde(default)]
+						[<$element_name:snake>]: Vec<$element_name>,
+					}
+					Ok(List::deserialize(deserializer)?.[<$element_name:snake>])
+				}
+			}
+		)*
+	};
 }
 
-fn unwrap_lines<'de, D>(deserializer: D) -> Result<Vec<Line>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    struct Lines {
-        #[serde(default)]
-        line: Vec<Line>,
-    }
-    Ok(Lines::deserialize(deserializer)?.line)
-}
-
-fn unwrap_note_columns<'de, D>(deserializer: D) -> Result<Vec<NoteColumn>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    struct NoteColumns {
-        #[serde(default)]
-        note_column: Vec<NoteColumn>,
-    }
-    Ok(NoteColumns::deserialize(deserializer)?.note_column)
-}
-
-fn unwrap_sequence_entries<'de, D>(deserializer: D) -> Result<Vec<SequenceEntry>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    #[serde(rename_all = "PascalCase")]
-    struct SequenceEntries {
-        #[serde(default)]
-        sequence_entry: Vec<SequenceEntry>,
-    }
-    Ok(SequenceEntries::deserialize(deserializer)?.sequence_entry)
-}
+unwrap_list_fns!(Pattern, Line, NoteColumn, SequenceEntry);

@@ -1,7 +1,8 @@
 use std::{fs::File, io::Read, path::Path};
 
 use derive_more::derive::{Display, Error, From};
-use serde::{Deserialize, Deserializer};
+use indexmap::IndexMap;
+use serde::Deserialize;
 use zip::{result::ZipError, ZipArchive};
 
 pub fn load(path: impl AsRef<Path>) -> Result<Song, Error> {
@@ -15,7 +16,7 @@ pub fn load(path: impl AsRef<Path>) -> Result<Song, Error> {
 	Ok(song)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Song {
 	pub global_song_data: GlobalSongData,
@@ -32,40 +33,63 @@ pub struct GlobalSongData {
 	pub signature_denominator: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PatternPool {
 	#[serde(deserialize_with = "unwrap_pattern_list")]
 	pub patterns: Vec<Pattern>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Pattern {
 	pub number_of_lines: u32,
 	pub tracks: Tracks,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Tracks {
 	#[serde(rename = "PatternTrack")]
 	pub pattern_tracks: Vec<PatternTrack>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(from = "raw::PatternTrack")]
 pub struct PatternTrack {
-	#[serde(deserialize_with = "unwrap_line_list")]
-	pub lines: Vec<Line>,
+	pub lines: IndexMap<u32, Line>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+impl PatternTrack {
+	pub fn line(&self, index: u32) -> Option<&Line> {
+		self.lines.get(&index)
+	}
+
+	pub fn line_mut(&mut self, index: u32) -> Option<&mut Line> {
+		self.lines.get_mut(&index)
+	}
+}
+
+impl From<raw::PatternTrack> for PatternTrack {
+	fn from(raw::PatternTrack { lines }: raw::PatternTrack) -> Self {
+		Self {
+			lines: lines
+				.iter()
+				.map(|raw_line| {
+					(
+						raw_line.index,
+						Line {
+							note_columns: raw_line.note_columns.clone(),
+						},
+					)
+				})
+				.collect(),
+		}
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Line {
-	#[serde(rename = "@index")]
-	pub index: u32,
-	#[serde(deserialize_with = "unwrap_note_column_list")]
 	pub note_columns: Vec<NoteColumn>,
 }
 
@@ -107,7 +131,7 @@ macro_rules! unwrap_list_fns {
 			paste::paste! {
 				fn [<unwrap_ $element_name:snake _list>]<'de, D>(deserializer: D) -> Result<Vec<$element_name>, D::Error>
 				where
-					D: Deserializer<'de>,
+					D: serde::de::Deserializer<'de>,
 				{
 					#[derive(Deserialize)]
 					#[serde(rename_all = "PascalCase")]
@@ -122,4 +146,28 @@ macro_rules! unwrap_list_fns {
 	};
 }
 
-unwrap_list_fns!(Pattern, Line, NoteColumn, SequenceEntry);
+unwrap_list_fns!(Pattern, NoteColumn, SequenceEntry);
+
+mod raw {
+	use serde::Deserialize;
+
+	use crate::{unwrap_note_column_list, NoteColumn};
+
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	pub struct PatternTrack {
+		#[serde(deserialize_with = "unwrap_line_list")]
+		pub lines: Vec<Line>,
+	}
+
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	pub struct Line {
+		#[serde(rename = "@index")]
+		pub index: u32,
+		#[serde(deserialize_with = "unwrap_note_column_list")]
+		pub note_columns: Vec<NoteColumn>,
+	}
+
+	unwrap_list_fns!(Line);
+}

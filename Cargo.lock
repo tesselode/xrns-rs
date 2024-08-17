@@ -585,6 +585,7 @@ name = "xrns-rs"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "indexmap",
  "paste",
  "quick-xml",
  "serde",

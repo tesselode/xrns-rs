@@ -108,8 +108,8 @@ pub struct Line {
 pub struct NoteColumn {
 	pub note_command: Option<NoteCommand>,
 	pub instrument: Option<Instrument>,
-	pub volume: VolumeColumn,
-	pub panning: PanningColumn,
+	pub volume_column: VolumeColumn,
+	pub panning_column: PanningColumn,
 	pub delay: Delay,
 	pub effect: Option<Effect>,
 }
@@ -141,8 +141,8 @@ impl TryFrom<raw::NoteColumn> for NoteColumn {
 		Ok(Self {
 			note_command,
 			instrument,
-			volume,
-			panning,
+			volume_column: volume,
+			panning_column: panning,
 			delay,
 			effect,
 		})
@@ -206,6 +206,16 @@ pub enum VolumeColumn {
 	Effect(VolumeColumnEffect),
 }
 
+impl VolumeColumn {
+	pub fn volume(self) -> Volume<u8> {
+		if let VolumeColumn::Volume(volume) = self {
+			volume
+		} else {
+			Volume::default()
+		}
+	}
+}
+
 impl TryFrom<&str> for VolumeColumn {
 	type Error = ParseVolumeError;
 
@@ -246,6 +256,16 @@ impl From<InvalidVolumeColumnEffect> for ParseVolumeError {
 pub enum PanningColumn {
 	Panning(Panning<u8>),
 	Effect(PanningColumnEffect),
+}
+
+impl PanningColumn {
+	pub fn panning(self) -> Panning<u8> {
+		if let PanningColumn::Panning(panning) = self {
+			panning
+		} else {
+			Panning::default()
+		}
+	}
 }
 
 impl TryFrom<&str> for PanningColumn {

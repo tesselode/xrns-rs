@@ -558,7 +558,7 @@
         <NoteColumnName/>
       </NoteColumnNames>
       <NumberOfVisibleNoteColumns>2</NumberOfVisibleNoteColumns>
-      <NumberOfVisibleEffectColumns>1</NumberOfVisibleEffectColumns>
+      <NumberOfVisibleEffectColumns>5</NumberOfVisibleEffectColumns>
       <VolumeColumnIsVisible>true</VolumeColumnIsVisible>
       <PanningColumnIsVisible>true</PanningColumnIsVisible>
       <DelayColumnIsVisible>true</DelayColumnIsVisible>
@@ -818,6 +818,7 @@
                     <Note>C#4</Note>
                     <Instrument>01</Instrument>
                     <Volume>40</Volume>
+                    <Panning>B1</Panning>
                     <EffectNumber>0G</EffectNumber>
                     <EffectValue>40</EffectValue>
                   </NoteColumn>
@@ -826,12 +827,23 @@
                     <Instrument>01</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn>
+                    <Value>03</Value>
+                    <Number>0I</Number>
+                  </EffectColumn>
+                  <EffectColumn>
+                    <Value>05</Value>
+                    <Number>0U</Number>
+                  </EffectColumn>
+                </EffectColumns>
               </Line>
               <Line index="2">
                 <NoteColumns>
                   <NoteColumn>
                     <Note>E-4</Note>
                     <Instrument>01</Instrument>
+                    <Volume>C6</Volume>
                     <Panning>60</Panning>
                   </NoteColumn>
                 </NoteColumns>

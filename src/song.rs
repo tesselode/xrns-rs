@@ -87,6 +87,7 @@ impl From<raw::PatternTrack> for PatternTrack {
 						raw_line.index,
 						Line {
 							note_columns: raw_line.note_columns.clone(),
+							effect_columns: raw_line.effect_columns.clone(),
 						},
 					)
 				})
@@ -98,6 +99,7 @@ impl From<raw::PatternTrack> for PatternTrack {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Line {
 	pub note_columns: Vec<NoteColumn>,
+	pub effect_columns: Vec<EffectColumn>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
@@ -143,6 +145,20 @@ impl TryFrom<raw::NoteColumn> for NoteColumn {
 			delay,
 			effect,
 		})
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[serde(try_from = "raw::EffectColumn")]
+pub struct EffectColumn(pub Effect);
+
+impl TryFrom<raw::EffectColumn> for EffectColumn {
+	type Error = InvalidEffect;
+
+	fn try_from(
+		raw::EffectColumn { number, value }: raw::EffectColumn,
+	) -> Result<Self, Self::Error> {
+		Effect::try_from((number.as_ref(), value.as_ref())).map(Self)
 	}
 }
 
@@ -314,12 +330,15 @@ macro_rules! unwrap_list_fns {
 	};
 }
 
-unwrap_list_fns!(Pattern, NoteColumn, SequenceEntry);
+unwrap_list_fns!(Pattern, NoteColumn, EffectColumn, SequenceEntry);
 
 mod raw {
 	use serde::Deserialize;
 
-	use super::{unwrap_note_column_list, Delay, Instrument, NoteCommand, Panning, Volume};
+	use super::{
+		unwrap_effect_column_list, unwrap_note_column_list, Delay, Instrument, NoteCommand,
+		Panning, Volume,
+	};
 
 	#[derive(Deserialize)]
 	#[serde(rename_all = "PascalCase")]
@@ -335,6 +354,9 @@ mod raw {
 		pub index: u32,
 		#[serde(deserialize_with = "unwrap_note_column_list")]
 		pub note_columns: Vec<super::NoteColumn>,
+		#[serde(deserialize_with = "unwrap_effect_column_list")]
+		#[serde(default)]
+		pub effect_columns: Vec<super::EffectColumn>,
 	}
 
 	#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
@@ -351,6 +373,13 @@ mod raw {
 		pub delay: Delay,
 		pub effect_number: Option<String>,
 		pub effect_value: Option<String>,
+	}
+
+	#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	pub struct EffectColumn {
+		pub number: String,
+		pub value: String,
 	}
 
 	unwrap_list_fns!(Line);

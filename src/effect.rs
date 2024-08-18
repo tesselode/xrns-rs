@@ -36,14 +36,14 @@ pub enum Effect {
 impl TryFrom<(&str, &str)> for Effect {
 	type Error = InvalidEffect;
 
-	fn try_from((kind, value): (&str, &str)) -> Result<Self, Self::Error> {
+	fn try_from((number, value): (&str, &str)) -> Result<Self, Self::Error> {
 		let xx = u8::from_str_radix(value, 16).map_err(|_| InvalidEffect {
-			kind: kind.to_string(),
+			number: number.to_string(),
 			value: value.to_string(),
 		})?;
 		let x = xx >> 0x1;
 		let y = xx & 0x1;
-		Ok(match kind {
+		Ok(match number {
 			"0A" => Self::Arpeggio {
 				note_offsets: [x, y],
 			},
@@ -64,7 +64,7 @@ impl TryFrom<(&str, &str)> for Effect {
 				1 => false,
 				_ => {
 					return Err(InvalidEffect {
-						kind: kind.to_string(),
+						number: number.to_string(),
 						value: value.to_string(),
 					})
 				}
@@ -92,7 +92,7 @@ impl TryFrom<(&str, &str)> for Effect {
 				1 => false,
 				_ => {
 					return Err(InvalidEffect {
-						kind: kind.to_string(),
+						number: number.to_string(),
 						value: value.to_string(),
 					})
 				}
@@ -103,7 +103,7 @@ impl TryFrom<(&str, &str)> for Effect {
 			"ZD" => Self::Pause { lines: xx },
 			_ => {
 				return Err(InvalidEffect {
-					kind: kind.to_string(),
+					number: number.to_string(),
 					value: value.to_string(),
 				})
 			}
@@ -112,10 +112,10 @@ impl TryFrom<(&str, &str)> for Effect {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Error, Display)]
-#[display("The effect {}{} is invalid.", self.kind, self.value)]
+#[display("The effect {}{} is invalid.", self.number, self.value)]
 pub struct InvalidEffect {
 	#[error(not(source))]
-	kind: String,
+	number: String,
 	#[error(not(source))]
 	value: String,
 }
@@ -138,10 +138,10 @@ impl TryFrom<&str> for VolumeColumnEffect {
 	type Error = InvalidVolumeColumnEffect;
 
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		let kind = &value[0..1];
+		let number = &value[0..1];
 		let value = u8::from_str_radix(&value[1..2], 16)
 			.map_err(|_| InvalidVolumeColumnEffect(value.to_string()))?;
-		Ok(match kind {
+		Ok(match number {
 			"I" => Self::FadeIn { speed: value },
 			"O" => Self::FadeOut { speed: value },
 			"U" => Self::SlideUp { semitones: value },
@@ -183,10 +183,10 @@ impl TryFrom<&str> for PanningColumnEffect {
 	type Error = InvalidPanningColumnEffect;
 
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		let kind = &value[0..1];
+		let number = &value[0..1];
 		let value = u8::from_str_radix(&value[1..2], 16)
 			.map_err(|_| InvalidPanningColumnEffect(value.to_string()))?;
-		Ok(match kind {
+		Ok(match number {
 			"J" => Self::SlideLeft { speed: value },
 			"K" => Self::SlideRight { speed: value },
 			"U" => Self::SlideUp { semitones: value },

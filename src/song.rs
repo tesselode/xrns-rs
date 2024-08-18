@@ -1,9 +1,14 @@
-use std::{fs::File, io::Read, path::Path};
+use std::{fs::File, io::Read, num::ParseIntError, path::Path};
 
 use derive_more::derive::{Display, Error, From};
 use indexmap::IndexMap;
 use serde::Deserialize;
 use zip::{result::ZipError, ZipArchive};
+
+use crate::{
+	InvalidPanningColumnEffect, InvalidPitch, InvalidVolumeColumnEffect, PanningColumnEffect,
+	Pitch, VolumeColumnEffect,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -98,13 +103,144 @@ pub struct Line {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct NoteColumn {
-	pub note: String,
-	pub instrument: Option<String>,
-	pub volume: Option<String>,
-	pub panning: Option<String>,
-	pub delay: Option<String>,
+	#[serde(rename = "Note")]
+	pub note_command: NoteCommand,
+	pub instrument: Option<Instrument>,
+	#[serde(default)]
+	pub volume: Volume,
+	#[serde(default)]
+	pub panning: Panning,
+	#[serde(default)]
+	pub delay: Delay,
 	pub effect_number: Option<String>,
 	pub effect_value: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(try_from = "&str")]
+pub enum NoteCommand {
+	On(Pitch),
+	Off,
+}
+
+impl TryFrom<&str> for NoteCommand {
+	type Error = InvalidPitch;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		if value == "OFF" {
+			return Ok(Self::Off);
+		}
+		let pitch = Pitch::try_from(value)?;
+		Ok(NoteCommand::On(pitch))
+	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(try_from = "&str")]
+pub struct Instrument(pub u8);
+
+impl TryFrom<&str> for Instrument {
+	type Error = ParseIntError;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		Ok(Self(u8::from_str_radix(value, 16)?))
+	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(try_from = "&str")]
+pub enum Volume {
+	Volume(u8),
+	Effect(VolumeColumnEffect),
+}
+
+impl TryFrom<&str> for Volume {
+	type Error = ParseVolumeError;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		let volume = u8::from_str_radix(value, 16)?;
+		if volume <= 0x80 {
+			Ok(Self::Volume(volume))
+		} else {
+			Ok(Self::Effect(VolumeColumnEffect::try_from(value)?))
+		}
+	}
+}
+
+impl Default for Volume {
+	fn default() -> Self {
+		Self::Volume(0x80)
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Display, From, Error)]
+pub enum ParseVolumeError {
+	ParseIntError(ParseIntError),
+	InvalidEffect(
+		#[from(ignore)]
+		#[error(not(source))]
+		String,
+	),
+}
+
+impl From<InvalidVolumeColumnEffect> for ParseVolumeError {
+	fn from(InvalidVolumeColumnEffect(s): InvalidVolumeColumnEffect) -> Self {
+		Self::InvalidEffect(s)
+	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(try_from = "&str")]
+pub enum Panning {
+	Panning(u8),
+	Effect(PanningColumnEffect),
+}
+
+impl TryFrom<&str> for Panning {
+	type Error = ParsePanningError;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		let panning = u8::from_str_radix(value, 16)?;
+		if panning <= 0x80 {
+			Ok(Self::Panning(panning))
+		} else {
+			Ok(Self::Effect(PanningColumnEffect::try_from(value)?))
+		}
+	}
+}
+
+impl Default for Panning {
+	fn default() -> Self {
+		Self::Panning(0x40)
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Display, From, Error)]
+pub enum ParsePanningError {
+	ParseIntError(ParseIntError),
+	InvalidEffect(
+		#[from(ignore)]
+		#[error(not(source))]
+		String,
+	),
+}
+
+impl From<InvalidPanningColumnEffect> for ParsePanningError {
+	fn from(InvalidPanningColumnEffect(s): InvalidPanningColumnEffect) -> Self {
+		Self::InvalidEffect(s)
+	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Default)]
+#[serde(try_from = "&str")]
+pub struct Delay(pub u8);
+
+impl TryFrom<&str> for Delay {
+	type Error = ParseIntError;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		Ok(Self(u8::from_str_radix(value, 16)?))
+	}
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]

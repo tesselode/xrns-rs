@@ -309,28 +309,57 @@ pub enum Error {
 	DeError(quick_xml::DeError),
 }
 
-macro_rules! unwrap_list_fns {
-    ($($element_name:ident),*$(,)?) => {
-		$(
-			paste::paste! {
-				fn [<unwrap_ $element_name:snake _list>]<'de, D>(deserializer: D) -> Result<Vec<$element_name>, D::Error>
-				where
-					D: serde::de::Deserializer<'de>,
-				{
-					#[derive(Deserialize)]
-					#[serde(rename_all = "PascalCase")]
-					struct List {
-						#[serde(default)]
-						[<$element_name:snake>]: Vec<$element_name>,
-					}
-					Ok(List::deserialize(deserializer)?.[<$element_name:snake>])
-				}
-			}
-		)*
-	};
+fn unwrap_pattern_list<'de, D>(deserializer: D) -> Result<Vec<Pattern>, D::Error>
+where
+	D: serde::de::Deserializer<'de>,
+{
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	struct List {
+		#[serde(default)]
+		pattern: Vec<Pattern>,
+	}
+	Ok(List::deserialize(deserializer)?.pattern)
 }
 
-unwrap_list_fns!(Pattern, NoteColumn, EffectColumn, SequenceEntry);
+fn unwrap_note_column_list<'de, D>(deserializer: D) -> Result<Vec<NoteColumn>, D::Error>
+where
+	D: serde::de::Deserializer<'de>,
+{
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	struct List {
+		#[serde(default)]
+		note_column: Vec<NoteColumn>,
+	}
+	Ok(List::deserialize(deserializer)?.note_column)
+}
+
+fn unwrap_effect_column_list<'de, D>(deserializer: D) -> Result<Vec<EffectColumn>, D::Error>
+where
+	D: serde::de::Deserializer<'de>,
+{
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	struct List {
+		#[serde(default)]
+		effect_column: Vec<EffectColumn>,
+	}
+	Ok(List::deserialize(deserializer)?.effect_column)
+}
+
+fn unwrap_sequence_entry_list<'de, D>(deserializer: D) -> Result<Vec<SequenceEntry>, D::Error>
+where
+	D: serde::de::Deserializer<'de>,
+{
+	#[derive(Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	struct List {
+		#[serde(default)]
+		sequence_entry: Vec<SequenceEntry>,
+	}
+	Ok(List::deserialize(deserializer)?.sequence_entry)
+}
 
 mod raw {
 	use serde::Deserialize;
@@ -382,5 +411,16 @@ mod raw {
 		pub value: String,
 	}
 
-	unwrap_list_fns!(Line);
+	fn unwrap_line_list<'de, D>(deserializer: D) -> Result<Vec<Line>, D::Error>
+	where
+		D: serde::de::Deserializer<'de>,
+	{
+		#[derive(Deserialize)]
+		#[serde(rename_all = "PascalCase")]
+		struct List {
+			#[serde(default)]
+			line: Vec<Line>,
+		}
+		Ok(List::deserialize(deserializer)?.line)
+	}
 }

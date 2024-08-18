@@ -4,10 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-derive_more = { version = "1.0.0", features = ["display", "error", "from", "from_str"] }
+derive_more = { version = "1.0.0", features = [
+	"display",
+	"error",
+	"from",
+	"from_str",
+] }
 indexmap = "2.4.0"
-paste = "1.0.15"
 quick-xml = { version = "0.36.1", features = ["serialize"] }
-regex-lite = "0.1.6"
 serde = { version = "1.0.208", features = ["derive"] }
 zip = "2.1.6"

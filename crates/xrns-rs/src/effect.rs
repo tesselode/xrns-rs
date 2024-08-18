@@ -1,52 +1,29 @@
 use derive_more::derive::{Display, Error};
+use xrns_derive::Effect;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Effect)]
 pub enum VolumeColumnEffect {
+	#[effect("Ix")]
 	FadeIn { speed: u8 },
+	#[effect("Ox")]
 	FadeOut { speed: u8 },
+	#[effect("Ux")]
 	SlideUp { semitones: u8 },
+	#[effect("Dx")]
 	SlideDown { semitones: u8 },
+	#[effect("Gx")]
 	Glide { semitones: u8 },
+	#[effect("Cx")]
 	Cut { ticks: u8 },
+	#[effect("Bx")]
 	Backwards { backwards: bool },
+	#[effect("Qx")]
 	Delay { ticks: u8 },
+	#[effect("Yx")]
 	Maybe { probability: u8 },
+	#[effect("Rx")]
 	Retrigger { ticks: u8 },
 }
-
-impl TryFrom<&str> for VolumeColumnEffect {
-	type Error = InvalidVolumeColumnEffect;
-
-	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		let kind = &value[0..1];
-		let value = value[1..2]
-			.parse::<u8>()
-			.map_err(|_| InvalidVolumeColumnEffect(value.to_string()))?;
-		Ok(match kind {
-			"I" => Self::FadeIn { speed: value },
-			"O" => Self::FadeOut { speed: value },
-			"U" => Self::SlideUp { semitones: value },
-			"D" => Self::SlideDown { semitones: value },
-			"G" => Self::Glide { semitones: value },
-			"C" => Self::Cut { ticks: value },
-			"B" => Self::Backwards {
-				backwards: match value {
-					0 => true,
-					1 => false,
-					_ => return Err(InvalidVolumeColumnEffect(value.to_string())),
-				},
-			},
-			"Q" => Self::Delay { ticks: value },
-			"Y" => Self::Maybe { probability: value },
-			"R" => Self::Retrigger { ticks: value },
-			_ => return Err(InvalidVolumeColumnEffect(value.to_string())),
-		})
-	}
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Error, Display)]
-#[display("The volume column effect {} is invalid.", self.0)]
-pub struct InvalidVolumeColumnEffect(#[error(not(source))] pub String);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PanningColumnEffect {

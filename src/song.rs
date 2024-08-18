@@ -15,6 +15,7 @@ use crate::{
 pub struct Song {
 	pub global_song_data: GlobalSongData,
 	pub pattern_pool: PatternPool,
+	pub pattern_sequence: PatternSequence,
 }
 
 impl Song {
@@ -105,7 +106,7 @@ pub struct Line {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(try_from = "raw::NoteColumn")]
 pub struct NoteColumn {
-	pub note_command: NoteCommand,
+	pub note_command: Option<NoteCommand>,
 	pub instrument: Option<Instrument>,
 	pub volume: VolumeColumn,
 	pub panning: PanningColumn,
@@ -150,7 +151,7 @@ impl TryFrom<raw::NoteColumn> for NoteColumn {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(try_from = "raw::EffectColumn")]
-pub struct EffectColumn(pub Effect);
+pub struct EffectColumn(pub Option<Effect>);
 
 impl TryFrom<raw::EffectColumn> for EffectColumn {
 	type Error = InvalidEffect;
@@ -158,7 +159,12 @@ impl TryFrom<raw::EffectColumn> for EffectColumn {
 	fn try_from(
 		raw::EffectColumn { number, value }: raw::EffectColumn,
 	) -> Result<Self, Self::Error> {
-		Effect::try_from((number.as_ref(), value.as_ref())).map(Self)
+		let effect = if let (Some(number), Some(value)) = (number, value) {
+			Some(Effect::try_from((number.as_ref(), value.as_ref()))?)
+		} else {
+			None
+		};
+		Ok(Self(effect))
 	}
 }
 
@@ -299,7 +305,8 @@ pub struct PatternSequence {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct SequenceEntry {
-	pub pattern: usize,
+	#[serde(rename = "Pattern")]
+	pub pattern_index: usize,
 }
 
 #[derive(Debug, From, Error, Display)]
@@ -392,7 +399,7 @@ mod raw {
 	#[serde(rename_all = "PascalCase")]
 	pub struct NoteColumn {
 		#[serde(rename = "Note")]
-		pub note_command: NoteCommand,
+		pub note_command: Option<NoteCommand>,
 		pub instrument: Option<Instrument>,
 		#[serde(default)]
 		pub volume: VolumeColumn,
@@ -407,8 +414,8 @@ mod raw {
 	#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 	#[serde(rename_all = "PascalCase")]
 	pub struct EffectColumn {
-		pub number: String,
-		pub value: String,
+		pub number: Option<String>,
+		pub value: Option<String>,
 	}
 
 	fn unwrap_line_list<'de, D>(deserializer: D) -> Result<Vec<Line>, D::Error>

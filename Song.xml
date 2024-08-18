@@ -814,14 +814,7 @@
             <Lines>
               <Line index="0">
                 <NoteColumns>
-                  <NoteColumn>
-                    <Note>C#4</Note>
-                    <Instrument>01</Instrument>
-                    <Volume>40</Volume>
-                    <Panning>B1</Panning>
-                    <EffectNumber>0G</EffectNumber>
-                    <EffectValue>40</EffectValue>
-                  </NoteColumn>
+                  <NoteColumn/>
                   <NoteColumn>
                     <Note>C-5</Note>
                     <Instrument>01</Instrument>
@@ -829,7 +822,7 @@
                 </NoteColumns>
                 <EffectColumns>
                   <EffectColumn>
-                    <Value>03</Value>
+                    <Value>0A</Value>
                     <Number>0I</Number>
                   </EffectColumn>
                   <EffectColumn>
@@ -847,6 +840,10 @@
                     <Panning>60</Panning>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="4">
                 <NoteColumns>
@@ -859,6 +856,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="6">
                 <NoteColumns>
@@ -866,6 +867,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
             </Lines>
             <AliasPatternIndex>-1</AliasPatternIndex>
@@ -884,6 +889,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="2">
                 <NoteColumns>
@@ -892,6 +901,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="4">
                 <NoteColumns>
@@ -900,6 +913,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="6">
                 <NoteColumns>
@@ -907,6 +924,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
             </Lines>
             <AliasPatternIndex>-1</AliasPatternIndex>
@@ -945,6 +966,10 @@
                     <Instrument>01</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="2">
                 <NoteColumns>
@@ -954,6 +979,10 @@
                     <Panning>60</Panning>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="4">
                 <NoteColumns>
@@ -966,6 +995,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="6">
                 <NoteColumns>
@@ -973,6 +1006,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
             </Lines>
             <AliasPatternIndex>-1</AliasPatternIndex>
@@ -991,6 +1028,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="2">
                 <NoteColumns>
@@ -999,6 +1040,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="4">
                 <NoteColumns>
@@ -1007,6 +1052,10 @@
                     <Instrument>00</Instrument>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
               <Line index="6">
                 <NoteColumns>
@@ -1014,6 +1063,10 @@
                     <Note>OFF</Note>
                   </NoteColumn>
                 </NoteColumns>
+                <EffectColumns>
+                  <EffectColumn/>
+                  <EffectColumn/>
+                </EffectColumns>
               </Line>
             </Lines>
             <AliasPatternIndex>-1</AliasPatternIndex>

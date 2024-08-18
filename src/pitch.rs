@@ -70,7 +70,17 @@ pub struct Pitch {
 }
 
 impl Pitch {
-	const SEMITONES_PER_OCTAVE: Semitones<u32> = Semitones(12);
+	pub const LOWEST: Self = Self {
+		note_name: NoteName::C,
+		is_sharp: false,
+		octave: 0,
+	};
+	pub const HIGHEST: Self = Self {
+		note_name: NoteName::B,
+		is_sharp: false,
+		octave: 9,
+	};
+	pub const SEMITONES_PER_OCTAVE: Semitones<u32> = Semitones(12);
 
 	pub fn semitones_above_c0(self) -> Semitones<u32> {
 		Self::SEMITONES_PER_OCTAVE * self.octave

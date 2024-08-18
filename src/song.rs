@@ -6,8 +6,8 @@ use serde::Deserialize;
 use zip::{result::ZipError, ZipArchive};
 
 use crate::{
-	InvalidPanningColumnEffect, InvalidPitch, InvalidVolumeColumnEffect, PanningColumnEffect,
-	Pitch, VolumeColumnEffect,
+	Effect, InvalidEffect, InvalidPanningColumnEffect, InvalidPitch, InvalidVolumeColumnEffect,
+	PanningColumnEffect, Pitch, VolumeColumnEffect,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -101,19 +101,49 @@ pub struct Line {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(try_from = "raw::NoteColumn")]
 pub struct NoteColumn {
-	#[serde(rename = "Note")]
 	pub note_command: NoteCommand,
 	pub instrument: Option<Instrument>,
-	#[serde(default)]
 	pub volume: Volume,
-	#[serde(default)]
 	pub panning: Panning,
-	#[serde(default)]
 	pub delay: Delay,
-	pub effect_number: Option<String>,
-	pub effect_value: Option<String>,
+	pub effect: Option<Effect>,
+}
+
+impl TryFrom<raw::NoteColumn> for NoteColumn {
+	type Error = InvalidEffect;
+
+	fn try_from(
+		raw::NoteColumn {
+			note_command,
+			instrument,
+			volume,
+			panning,
+			delay,
+			effect_number,
+			effect_value,
+		}: raw::NoteColumn,
+	) -> Result<Self, Self::Error> {
+		let effect = if let (Some(effect_number), Some(effect_value)) =
+			(effect_number.as_ref(), effect_value.as_ref())
+		{
+			Some(Effect::try_from((
+				effect_number.as_ref(),
+				effect_value.as_ref(),
+			))?)
+		} else {
+			None
+		};
+		Ok(Self {
+			note_command,
+			instrument,
+			volume,
+			panning,
+			delay,
+			effect,
+		})
+	}
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
@@ -289,7 +319,7 @@ unwrap_list_fns!(Pattern, NoteColumn, SequenceEntry);
 mod raw {
 	use serde::Deserialize;
 
-	use super::{unwrap_note_column_list, NoteColumn};
+	use super::{unwrap_note_column_list, Delay, Instrument, NoteCommand, Panning, Volume};
 
 	#[derive(Deserialize)]
 	#[serde(rename_all = "PascalCase")]
@@ -304,7 +334,23 @@ mod raw {
 		#[serde(rename = "@index")]
 		pub index: u32,
 		#[serde(deserialize_with = "unwrap_note_column_list")]
-		pub note_columns: Vec<NoteColumn>,
+		pub note_columns: Vec<super::NoteColumn>,
+	}
+
+	#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+	#[serde(rename_all = "PascalCase")]
+	pub struct NoteColumn {
+		#[serde(rename = "Note")]
+		pub note_command: NoteCommand,
+		pub instrument: Option<Instrument>,
+		#[serde(default)]
+		pub volume: Volume,
+		#[serde(default)]
+		pub panning: Panning,
+		#[serde(default)]
+		pub delay: Delay,
+		pub effect_number: Option<String>,
+		pub effect_value: Option<String>,
 	}
 
 	unwrap_list_fns!(Line);

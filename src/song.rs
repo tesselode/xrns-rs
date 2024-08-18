@@ -6,8 +6,8 @@ use serde::Deserialize;
 use zip::{result::ZipError, ZipArchive};
 
 use crate::{
-	Effect, InvalidEffect, InvalidPanningColumnEffect, InvalidPitch, InvalidVolumeColumnEffect,
-	PanningColumnEffect, Pitch, VolumeColumnEffect,
+	volume::Volume, Effect, InvalidEffect, InvalidPanningColumnEffect, InvalidPitch,
+	InvalidVolumeColumnEffect, Panning, PanningColumnEffect, Pitch, VolumeColumnEffect,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -107,8 +107,8 @@ pub struct Line {
 pub struct NoteColumn {
 	pub note_command: NoteCommand,
 	pub instrument: Option<Instrument>,
-	pub volume: Volume,
-	pub panning: Panning,
+	pub volume: VolumeColumn,
+	pub panning: PanningColumn,
 	pub delay: Delay,
 	pub effect: Option<Effect>,
 }
@@ -195,17 +195,17 @@ impl TryFrom<&str> for Instrument {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
 #[serde(try_from = "&str")]
-pub enum Volume {
-	Volume(u8),
+pub enum VolumeColumn {
+	Volume(Volume<u8>),
 	Effect(VolumeColumnEffect),
 }
 
-impl TryFrom<&str> for Volume {
+impl TryFrom<&str> for VolumeColumn {
 	type Error = ParseVolumeError;
 
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		let volume = u8::from_str_radix(value, 16)?;
-		if volume <= 0x80 {
+		let volume = Volume(u8::from_str_radix(value, 16)?);
+		if volume <= Volume::<u8>::MAX {
 			Ok(Self::Volume(volume))
 		} else {
 			Ok(Self::Effect(VolumeColumnEffect::try_from(value)?))
@@ -213,9 +213,9 @@ impl TryFrom<&str> for Volume {
 	}
 }
 
-impl Default for Volume {
+impl Default for VolumeColumn {
 	fn default() -> Self {
-		Self::Volume(0x80)
+		Self::Volume(Volume::default())
 	}
 }
 
@@ -237,17 +237,17 @@ impl From<InvalidVolumeColumnEffect> for ParseVolumeError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
 #[serde(try_from = "&str")]
-pub enum Panning {
-	Panning(u8),
+pub enum PanningColumn {
+	Panning(Panning<u8>),
 	Effect(PanningColumnEffect),
 }
 
-impl TryFrom<&str> for Panning {
+impl TryFrom<&str> for PanningColumn {
 	type Error = ParsePanningError;
 
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		let panning = u8::from_str_radix(value, 16)?;
-		if panning <= 0x80 {
+		let panning = Panning(u8::from_str_radix(value, 16)?);
+		if panning <= Panning::<u8>::RIGHT {
 			Ok(Self::Panning(panning))
 		} else {
 			Ok(Self::Effect(PanningColumnEffect::try_from(value)?))
@@ -255,9 +255,9 @@ impl TryFrom<&str> for Panning {
 	}
 }
 
-impl Default for Panning {
+impl Default for PanningColumn {
 	fn default() -> Self {
-		Self::Panning(0x40)
+		Self::Panning(Panning::default())
 	}
 }
 
@@ -366,7 +366,7 @@ mod raw {
 
 	use super::{
 		unwrap_effect_column_list, unwrap_note_column_list, Delay, Instrument, NoteCommand,
-		Panning, Volume,
+		PanningColumn, VolumeColumn,
 	};
 
 	#[derive(Deserialize)]
@@ -395,9 +395,9 @@ mod raw {
 		pub note_command: NoteCommand,
 		pub instrument: Option<Instrument>,
 		#[serde(default)]
-		pub volume: Volume,
+		pub volume: VolumeColumn,
 		#[serde(default)]
-		pub panning: Panning,
+		pub panning: PanningColumn,
 		#[serde(default)]
 		pub delay: Delay,
 		pub effect_number: Option<String>,

@@ -1,5 +1,40 @@
-use derive_more::derive::{Display, Error, FromStr};
+use derive_more::derive::{
+	Add, AddAssign, Display, Div, DivAssign, Error, FromStr, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 use serde::Deserialize;
+
+#[derive(
+	Debug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	PartialOrd,
+	Ord,
+	Hash,
+	Add,
+	AddAssign,
+	Sub,
+	SubAssign,
+	Mul,
+	MulAssign,
+	Div,
+	DivAssign,
+	Neg,
+)]
+pub struct Semitones<T>(pub T);
+
+impl Semitones<u32> {
+	pub fn as_f32(self) -> Semitones<f32> {
+		Semitones(self.0 as f32)
+	}
+}
+
+impl Semitones<f32> {
+	pub fn as_u32(self) -> Semitones<u32> {
+		Semitones(self.0 as u32)
+	}
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromStr)]
 pub enum NoteName {
@@ -12,12 +47,36 @@ pub enum NoteName {
 	B,
 }
 
+impl NoteName {
+	pub fn semitones_above_c(self) -> Semitones<u32> {
+		Semitones(match self {
+			NoteName::C => 0,
+			NoteName::D => 2,
+			NoteName::E => 4,
+			NoteName::F => 5,
+			NoteName::G => 7,
+			NoteName::A => 9,
+			NoteName::B => 11,
+		})
+	}
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
 #[serde(try_from = "&str")]
 pub struct Pitch {
 	pub note_name: NoteName,
 	pub is_sharp: bool,
-	pub octave: u8,
+	pub octave: u32,
+}
+
+impl Pitch {
+	const SEMITONES_PER_OCTAVE: Semitones<u32> = Semitones(12);
+
+	pub fn semitones_above_c0(self) -> Semitones<u32> {
+		Self::SEMITONES_PER_OCTAVE * self.octave
+			+ self.note_name.semitones_above_c()
+			+ Semitones(if self.is_sharp { 1 } else { 0 })
+	}
 }
 
 impl TryFrom<&str> for Pitch {
